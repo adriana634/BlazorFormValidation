@@ -1,0 +1,127 @@
+﻿@page "/form-example-4"
+@using Microsoft.Extensions.Logging
+@using System.ComponentModel.DataAnnotations
+@implements IDisposable
+@inject ILogger<FormExample4> Logger
+
+<h2>Ship Holodecks</h2>
+
+<EditForm EditContext="editContext" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <p>
+        <label>
+            Identifier:
+            <InputText @bind-Value="holodeck.Identifier" />
+        </label>
+    </p>
+
+    <p>
+        <label>
+            Type 1:
+            <InputCheckbox @bind-Value="holodeck.Type1" />
+        </label>
+
+        <label>
+            Type 2:
+            <InputCheckbox @bind-Value="holodeck.Type2" />
+        </label>
+    </p>
+
+    <p>
+        <label>
+            Yellow:
+            <InputCheckbox @bind-Value="holodeck.Yellow" />
+        </label>
+
+        <label>
+            Green:
+            <InputCheckbox @bind-Value="holodeck.Green" />
+        </label>
+
+        <label>
+            Red:
+            <InputCheckbox @bind-Value="holodeck.Red" />
+        </label>
+
+        <label>
+            Blue:
+            <InputCheckbox @bind-Value="holodeck.Blue" />
+        </label>
+    </p>
+    
+    <button type="submit">Update</button>
+
+    <p>
+        <a href="https://intl.startrek.com/">Star Trek</a>,
+        ©1966-2019 CBS Studios, Inc. and
+        <a href="https://www.paramount.com">Paramount Pictures</a>
+    </p>
+</EditForm>
+
+@code {
+    private EditContext? editContext;
+    private Holodeck holodeck = new();
+    private ValidationMessageStore? messageStore;
+
+    protected override void OnInitialized()
+    {
+        editContext = new(holodeck);
+        editContext.OnValidationRequested += HandleValidationRequested;
+        messageStore = new(editContext);
+    }
+
+    private void HandleValidationRequested(object? sender,
+        ValidationRequestedEventArgs args)
+    {
+        messageStore?.Clear();
+
+        // Custom validation logic
+        if (!holodeck.AtLeastOneType)
+        {
+            messageStore?.Add(() => holodeck.AtLeastOneType, "Select at least one type.");
+        }
+
+        // Custom validation logic
+        //if (!holodeck.AtLeastOneColor)
+        //{
+        //    messageStore?.Add(() => holodeck.AtLeastOneColor, "Select at least one color.");
+        //}
+    }
+
+    private void HandleValidSubmit()
+    {
+        Logger.LogInformation("HandleValidSubmit called: Processing the form");
+
+        // Process the form
+    }
+
+    public class Holodeck
+    {
+        [Required]
+        [StringLength(16, ErrorMessage = "Identifier too long (16 character limit).")]
+        public string? Identifier { get; set; }
+
+        public bool Type1 { get; set; }
+        public bool Type2 { get; set; }
+        public bool AtLeastOneType => Type1 || Type2;
+
+        public bool Yellow { get; set; }
+        public bool Green { get; set; }
+        public bool Red { get; set; }
+        public bool Blue { get; set; }
+        [Required]
+        [Range(typeof(bool), "true", "true",
+            ErrorMessage = "Select at least one color.")]
+        public bool AtLeastOneColor => Yellow || Green || Red || Blue;
+    }
+
+    public void Dispose()
+    {
+        if (editContext is not null)
+        {
+            editContext.OnValidationRequested -= HandleValidationRequested;
+        }
+    }
+}
