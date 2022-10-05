@@ -111,7 +111,7 @@
         public bool Green { get; set; }
         public bool Red { get; set; }
         public bool Blue { get; set; }
-        [Required]
+
         [Range(typeof(bool), "true", "true",
             ErrorMessage = "Select at least one color.")]
         public bool AtLeastOneColor => Yellow || Green || Red || Blue;
